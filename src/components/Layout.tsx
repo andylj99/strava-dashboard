@@ -1,19 +1,28 @@
+
+import type { ReactNode } from "react";
+import { Link } from "react-router-dom";
+
 type LayoutProps = {
-  children: React.ReactNode;
+  children: ReactNode;
 };
 
-const Layout = ({ children }: LayoutProps) => {
+export default function Layout({ children }: LayoutProps) {
   return (
     <div>
-      <header>
-        <h1>Strava Dashboard</h1>
+      <header
+        style={{
+          padding: "1rem",
+          borderBottom: "1px solid #ddd",
+          marginBottom: "1rem",
+        }}
+      >
+        <nav style={{ display: "flex", gap: "1rem" }}>
+          <Link to="/">Home</Link>
+          <Link to="/dashboard">Dashboard</Link>
+        </nav>
       </header>
-      <main>{children}</main>
-      <footer>
-        <p>© 2025 Strava Dashboard</p>
-      </footer>
+
+      <main style={{ padding: "1rem" }}>{children}</main>
     </div>
   );
-};
-
-export default Layout;
+}
