@@ -188,3 +188,35 @@ a:hover {
   color: #6b7280;
   font-size: 0.9rem;
 }
+
+.status-message {
+  font-size: 0.9rem;
+  margin-bottom: 0.75rem;
+}
+
+.status-message--loading {
+  color: #6b7280;
+}
+
+.status-message--error {
+  color: #b91c1c;
+}
+
+.primary-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.4rem 0.9rem;
+  border-radius: 999px;
+  background-color: #ff7f32; /* Strava-ish orange */
+  color: #ffffff;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+}
+
+.primary-button:hover {
+  background-color: #ea6e21;
+  text-decoration: none;
+}
