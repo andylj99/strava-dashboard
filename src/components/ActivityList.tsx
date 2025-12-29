@@ -1,18 +1,13 @@
 // src/components/ActivityList.tsx
+import type { CSSProperties } from "react";
 import type { Activity } from "../types/activity";
+import { formatMinutesToHhMm } from "../utils/format";
 
 type ActivityListProps = {
   activities: Activity[];
 };
 
-function formatMinutesToHhMm(minutes: number): string {
-  const hours = Math.floor(minutes / 60);
-  const mins = minutes % 60;
-  if (hours === 0) return `${mins} min`;
-  return `${hours}h ${mins.toString().padStart(2, "0")}m`;
-}
-
-const cardBaseStyle: React.CSSProperties = {
+const cardBaseStyle: CSSProperties = {
   borderRadius: "10px",
   padding: "0.9rem 1.1rem",
   border: "1px solid #eee",
@@ -24,7 +19,7 @@ const cardBaseStyle: React.CSSProperties = {
   gap: "1rem",
 };
 
-const typeBadgeBaseStyle: React.CSSProperties = {
+const typeBadgeBaseStyle: CSSProperties = {
   display: "inline-block",
   padding: "0.15rem 0.5rem",
   borderRadius: "999px",
@@ -32,7 +27,7 @@ const typeBadgeBaseStyle: React.CSSProperties = {
   fontWeight: 600,
 };
 
-function getTypeBadgeStyle(type: Activity["type"]): React.CSSProperties {
+function getTypeBadgeStyle(type: Activity["type"]): CSSProperties {
   const base = { ...typeBadgeBaseStyle };
 
   switch (type) {
