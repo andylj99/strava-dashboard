@@ -61,3 +61,35 @@ Key learning:
 - Introduce charts/graphs for activity summaries
 
 
+┌───────────────────────────────────────────┐
+│                  UI / Pages               │
+│                                           │
+│   App.tsx (routing + layout wrapper)      │
+│        ├─ Home.tsx                        │
+│        └─ Dashboard.tsx                   │
+│               │                           │
+│               ▼                           │
+│     ActivityList.tsx (presentational UI)  │
+└───────────────┬───────────────────────────┘
+                │ props: Activity[]
+                │
+                ▼
+┌───────────────────────────────────────────┐
+│         Data + Domain Model Layer         │
+│                                           │
+│   types/activity.ts (Activity interface)  │
+│   data/mockActivities.ts (temporary data) │
+└────────────────┬──────────────────────────┘
+                 │ mapping into Activity shape
+                 ▼
+┌───────────────────────────────────────────┐
+│             Service Layer (API)           │
+│                                           │
+│   services/stravaApi.ts                   │
+│     - fetchRecentActivities()             │
+│     - mapStravaActivityToActivity()       │
+│                                           │
+│   config/strava.ts                        │
+│     - OAuth URL builder                   │
+│     - Config constants                     │
+└───────────────────────────────────────────┘
