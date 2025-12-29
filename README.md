@@ -31,9 +31,33 @@ React + TypeScript + Vite
 
 ---
 
-📌 Next up (planned)
-- Extract formatting utilities
-- Create a more polished UI experience
-- Begin real Strava API integration (OAuth & activity fetch)
+### Day 3 — Styling & Strava Integration Prep (29 Dec 2025)
+
+What I did:
+- Moved UI styling out of inline objects into index.css
+- Added global layout and dashboard CSS classes for cleaner components
+- Created src/utils/format.ts for reusable formatting helpers
+- Created src/data/mockActivities.ts to separate data from UI logic
+- Introduced Strava OAuth config in src/config/strava.ts
+- Scaffolded a Strava API service (fetchRecentActivities) with type mapping
+
+Key learning:
+- How separation of concerns improves maintainability (UI vs data vs utilities vs services)
+- How to organize code in a scalable structure for future API integration
+- Mapping external API data into an internal domain model
+
+🚀 Next Planned Steps
+
+## Later today
+- Add loading / error states to Dashboard
+- Add a “Connect Strava” button that links to the Strava OAuth flow
+- Prepare a placeholder for showing real data once authenticated
+
+## Future
+
+- Implement OAuth callback page and token exchange
+- Fetch real activity data from Strava API
+- Style up authentication and state transitions
+- Introduce charts/graphs for activity summaries
 
 
