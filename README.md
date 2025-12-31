@@ -46,19 +46,26 @@ Key learning:
 - How to organize code in a scalable structure for future API integration
 - Mapping external API data into an internal domain model
 
+### Day 4 - Integrating with Strava (31 Dec 2025)
+
+What I did:
+- Successfully fetched real Strava activities via a backend proxy
+- Switched from mock data to live data when a token is present
+- Added token detection + conditional UI states
+- Hardened API service structure
+
+What I learned:
+- CORS rules block browser → Strava direct fetches
+- Best practice: untrusted frontend → backend proxy → Strava API
+- Using .env properly for local-only personal tokens
+- Testing and debugging real API flows
+
 🚀 Next Planned Steps
-
-## Later today
-- Add loading / error states to Dashboard
-- Add a “Connect Strava” button that links to the Strava OAuth flow
-- Prepare a placeholder for showing real data once authenticated
-
 ## Future
-
 - Implement OAuth callback page and token exchange
-- Fetch real activity data from Strava API
 - Style up authentication and state transitions
 - Introduce charts/graphs for activity summaries
+- Unit tests
 
 
 ┌───────────────────────────────────────────┐
