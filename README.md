@@ -46,6 +46,8 @@ Key learning:
 - How to organize code in a scalable structure for future API integration
 - Mapping external API data into an internal domain model
 
+---
+
 ### Day 4 - Integrating with Strava (31 Dec 2025)
 
 What I did:
