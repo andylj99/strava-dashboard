@@ -62,87 +62,143 @@ What I learned:
 - Using .env properly for local-only personal tokens
 - Testing and debugging real API flows
 
+---
+
+### Day 5 - Strava OAuth Refactor (02 Jan 2026)
+What we did
+- Fixed Strava OAuth failures caused by React 18 StrictMode double-running useEffect
+- Added a guard to ensure the authorization code is exchanged exactly once
+- Removed the temporary environment-token bypass
+- App now relies solely on OAuth-issued tokens
+
+Centralised authentication logic:
+- Created auth/ folder for token storage, exchange, and refresh
+- Added a token manager to return a valid access token and refresh automatically
+- Centralised Strava API calls in api/strava.ts
+
+Refactored Dashboard.tsx to be UI-only:
+- No OAuth or localStorage logic
+- Renders activities, loading/error states, and connect CTA
+- Refactored AuthCallback.tsx to a single responsibility:
+- Exchange code → save tokens → redirect
+- Restored dashboard styling using existing index.css
+- Added a reusable Connect with Strava button component
+
+Updated README to document:
+- OAuth flow
+- StrictMode behaviour
+- Project structure and environment variables
+
+Key learnings
+- OAuth authorization codes are single-use
+- React 18 StrictMode can surface real-world side-effect bugs
+- Token logic must be idempotent and centralised
+- Separating auth, API, and UI logic dramatically simplifies components
+
+Current state
+✅ OAuth working end-to-end
+✅ Tokens stored and refreshed correctly
+✅ Dashboard loads activities reliably
+✅ Clean, maintainable structure in place
+
 🚀 Next Planned Steps
 ## Future
-- Implement OAuth callback page and token exchange
-- Style up authentication and state transitions
+- UI/visual restyling and polish
+- Possibly add logout / disconnect
 - Introduce charts/graphs for activity summaries
 - Unit tests
 
 
-┌───────────────────────────────────────────┐
-│                  UI / Pages               │
-│                                           │
-│   App.tsx (routing + layout wrapper)      │
-│        ├─ Home.tsx                        │
-│        └─ Dashboard.tsx                   │
-│               │                           │
-│               ▼                           │
-│     ActivityList.tsx (presentational UI)  │
-└───────────────┬───────────────────────────┘
-                │ props: Activity[]
-                │
-                ▼
-┌───────────────────────────────────────────┐
-│         Data + Domain Model Layer         │
-│                                           │
-│   types/activity.ts (Activity interface)  │
-│   data/mockActivities.ts (temporary data) │
-└────────────────┬──────────────────────────┘
-                 │ mapping into Activity shape
-                 ▼
-┌───────────────────────────────────────────┐
-│             Service Layer (API)           │
-│                                           │
-│   services/stravaApi.ts                   │
-│     - fetchRecentActivities()             │
-│     - mapStravaActivityToActivity()       │
-│                                           │
-│   config/strava.ts                        │
-│     - OAuth URL builder                   │
-│     - Config constants                     │
-└───────────────────────────────────────────┘
+┌────────────────────────────────────────────────────┐
+│                     Browser                        │
+│                                                    │
+│  ┌──────────────────────────────────────────────┐ │
+│  │              App Shell / Router               │ │
+│  │                                              │ │
+│  │  Routes:                                     │ │
+│  │   /              → Home / Landing             │ │
+│  │   /dashboard     → Dashboard                  │ │
+│  │   /auth/callback → AuthCallback               │ │
+│  └───────────────┬──────────────────────────────┘ │
+│                  │                                │
+│                  ▼                                │
+│  ┌──────────────────────────────────────────────┐ │
+│  │            Home Page (/)                      │ │
+│  │  - Landing / intro                            │ │
+│  │  - Navigation to Dashboard                    │ │
+│  └──────────────────────────────────────────────┘ │
+│                                                    │
+│                  ┌──────────────────────────────┐ │
+│                  │                              │ │
+│                  ▼                              │ │
+│  ┌──────────────────────────────────────────────┐ │
+│  │        Dashboard Page (/dashboard)            │ │
+│  │                                              │ │
+│  │  - UI only                                   │ │
+│  │  - Calls getRecentActivities()                │ │
+│  │  - Shows loading / error / empty states       │ │
+│  │  - If NOT authenticated → shows Connect btn   │─┼─────┐
+│  └───────────────┬──────────────────────────────┘ │     │
+│                  │                                │     │ OAuth redirect
+│                  ▼                                │     ▼
+│  ┌──────────────────────────────────────────────┐ │  ┌───────────────┐
+│  │            api/strava.ts                      │ │  │     Strava     │
+│  │  - All Strava API requests                    │ │  │ Authorization │
+│  └───────────────┬──────────────────────────────┘ │  └───────┬───────┘
+│                  │                                │          │
+│                  ▼                                │          │ ?code=...
+│  ┌──────────────────────────────────────────────┐ │          ▼
+│  │       auth/tokenManager.ts                    │ │  ┌──────────────────────┐
+│  │  - Load tokens                               │ │  │ AuthCallback (/auth/  │
+│  │  - Check expiry                              │ │  │ callback)             │
+│  │  - Refresh if required                       │ │  │  - guard double-run   │
+│  │  - Return valid access token                 │ │  │  - exchange code      │
+│  └───────────────┬──────────────────────────────┘ │  │  - save tokens         │
+│                  │                                │  │  - redirect /dashboard │
+│                  ▼                                │  └──────────────────────┘
+│  ┌──────────────────────────────────────────────┐ │
+│  │           auth/storage.ts                     │ │
+│  │  - localStorage read/write/clear              │ │
+│  └──────────────────────────────────────────────┘ │
+│                                                    │
+└───────────────────────┬────────────────────────────┘
+                        │
+                        ▼
+┌────────────────────────────────────────────────────┐
+│                     Backend                        │
+│                                                    │
+│  POST /api/strava/exchange                          │
+│   - Exchanges code → access/refresh tokens           │
+│                                                    │
+│  POST /api/strava/refresh                           │
+│   - Refreshes access token when expired              │
+│                                                    │
+│  (Client secret lives only here)                    │
+└────────────────────────────────────────────────────┘
 
 
-## Strava OAuth (Local Development)
+🔐 OAuth Flow
 
-This app uses Strava OAuth to obtain an access token and refresh token.
+User navigates to Dashboard (/dashboard)
 
-### Prerequisites
-- A Strava API application created in the Strava Developer Portal
-- In your Strava app settings:
-  - **Authorization Callback Domain**: `localhost`
+If the user is not authenticated, Dashboard shows Connect with Strava
 
-### Environment variables
+Clicking Connect redirects the user to Strava’s authorization page
 
-Frontend (`.env.local`):
-- `VITE_STRAVA_CLIENT_ID=<your_strava_client_id>`
+Strava redirects back to:
 
-Backend (`server/.env`):
-- `STRAVA_CLIENT_ID=<your_strava_client_id>`
-- `STRAVA_CLIENT_SECRET=<your_strava_client_secret>`
-- `PORT=3001` (or whatever your backend runs on)
+/auth/callback?code=...
 
-### Run locally
+AuthCallback.tsx exchanges the single-use code via the backend, stores:
 
-1. Start the backend API:
-   - `cd server`
-   - `npm install`
-   - `npm run dev` (or `node index.js` depending on setup)
+access_token
 
-2. Start the frontend:
-   - `npm install`
-   - `npm run dev`
+refresh_token
 
-### OAuth flow
+expires_at
 
-1. Click **Connect with Strava**
-2. Strava redirects back to:
-   - `http://localhost:5173/auth/callback?code=...`
-3. The frontend calls the backend to exchange the authorization code for tokens.
-4. Tokens are stored in localStorage:
-   - `strava_access_token`
-   - `strava_refresh_token`
-   - `strava_token_expires_at`
+User is redirected back to /dashboard
 
-> Note: In React 18 dev mode, effects can run twice due to StrictMode. The callback handler includes a guard to ensure the authorization code is exchanged only once (authorization codes are single-use).
+All API calls use a central token manager which refreshes tokens automatically when expired
+
+React 18 StrictMode note: In dev mode, effects can run twice. The callback includes a guard so the code is exchanged only once (Strava codes are single-use).
