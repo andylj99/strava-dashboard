@@ -1,5 +1,5 @@
 // src/pages/AuthCallback.tsx
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { STRAVA_BACKEND_URL } from "../config/strava";
 import type { Activity } from "../types/activity";
@@ -24,7 +24,12 @@ export default function AuthCallback() {
   const [isExchanging, setIsExchanging] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const hasExchangedRef = useRef(false);
+
   useEffect(() => {
+    if (hasExchangedRef.current) return; // ✅ prevents double exchange
+    hasExchangedRef.current = true;
+
     const code = useQueryParam("code");
     const errorParam = useQueryParam("error");
 
@@ -65,15 +70,13 @@ export default function AuthCallback() {
         }
 
         const data = (await response.json()) as TokenExchangeResponse;
+        localStorage.removeItem("strava_access_token");
+        localStorage.removeItem("strava_refresh_token");
+        localStorage.removeItem("strava_token_expires_at");
 
-        // For this personal project, we'll store the access token in localStorage.
-        // (For production, you'd use a more secure approach!)
         localStorage.setItem("strava_access_token", data.access_token);
-        localStorage.setItem(
-          "strava_token_expires_at",
-          data.expires_at.toString()
-        );
         localStorage.setItem("strava_refresh_token", data.refresh_token);
+        localStorage.setItem("strava_token_expires_at", String(data.expires_at));
 
         // Redirect back to dashboard
         navigate("/dashboard", { replace: true });

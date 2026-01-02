@@ -16,20 +16,18 @@ export default function Dashboard() {
 
   useEffect(() => {
     const tokenFromLocalStorage = localStorage.getItem("strava_access_token");
-    const tokenFromEnv = import.meta.env
-      .VITE_STRAVA_ACCESS_TOKEN as string | undefined;
 
-    const token = tokenFromLocalStorage || tokenFromEnv;
-
-    console.log("Using token source:", {
-      fromLocalStorage: !!tokenFromLocalStorage,
-      fromEnv: !!tokenFromEnv,
-    });
+    const token = tokenFromLocalStorage;
 
     if (!token) {
+      console.log("No Strava access token found in localStorage. User not authenticated.");
       setIsConnected(false);
       return;
     }
+
+    console.log("Using token source:", {
+      fromLocalStorage: !!tokenFromLocalStorage,
+    });
 
     setIsConnected(true);
     setIsLoading(true);

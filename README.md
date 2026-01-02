@@ -102,3 +102,47 @@ What I learned:
 │     - OAuth URL builder                   │
 │     - Config constants                     │
 └───────────────────────────────────────────┘
+
+
+## Strava OAuth (Local Development)
+
+This app uses Strava OAuth to obtain an access token and refresh token.
+
+### Prerequisites
+- A Strava API application created in the Strava Developer Portal
+- In your Strava app settings:
+  - **Authorization Callback Domain**: `localhost`
+
+### Environment variables
+
+Frontend (`.env.local`):
+- `VITE_STRAVA_CLIENT_ID=<your_strava_client_id>`
+
+Backend (`server/.env`):
+- `STRAVA_CLIENT_ID=<your_strava_client_id>`
+- `STRAVA_CLIENT_SECRET=<your_strava_client_secret>`
+- `PORT=3001` (or whatever your backend runs on)
+
+### Run locally
+
+1. Start the backend API:
+   - `cd server`
+   - `npm install`
+   - `npm run dev` (or `node index.js` depending on setup)
+
+2. Start the frontend:
+   - `npm install`
+   - `npm run dev`
+
+### OAuth flow
+
+1. Click **Connect with Strava**
+2. Strava redirects back to:
+   - `http://localhost:5173/auth/callback?code=...`
+3. The frontend calls the backend to exchange the authorization code for tokens.
+4. Tokens are stored in localStorage:
+   - `strava_access_token`
+   - `strava_refresh_token`
+   - `strava_token_expires_at`
+
+> Note: In React 18 dev mode, effects can run twice due to StrictMode. The callback handler includes a guard to ensure the authorization code is exchanged only once (authorization codes are single-use).
