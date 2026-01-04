@@ -1,11 +1,41 @@
 
 # strava-dashboard
 
-React + TypeScript + Vite
+A personal learning project built with **React**, **TypeScript**, and **Vite**, focused on integrating with the Strava API using OAuth and building a maintainable, testable frontend architecture.
+
+---
+
+## Tech Stack
+
+- React 18
+- TypeScript
+- Vite
+- Vitest (testing)
+- Strava API (via backend proxy)
+
+---
+
+## Testing
+
+This project uses **Vitest** with a **jsdom** environment.
+
+### Run tests
+
+- Watch mode:
+  - `npm test`
+- Single run:
+  - `npm run test:run`
+
+### Auth coverage
+
+Auth logic has unit test coverage for:
+- `src/auth/storage.ts` (persist/load/clear tokens)
+- `src/auth/tokenManager.ts` (expiry handling + refresh + single-flight refresh)
+- `src/auth/api.ts` (token exchange + refresh via backend endpoints)
 
 ## 📝 Development Log
 
-### Day 1 — Project Setup & Git Learning (26 Dec 2025)
+## Day 1 — Project Setup & Git Learning (26 Dec 2025)
 - Created new Vite + React + TypeScript project
 - Initialized repo and connected to GitHub
 - Set up initial file structure under `src/`
@@ -17,7 +47,7 @@ React + TypeScript + Vite
 
 ---
 
-### Day 2 — Routing & Dashboard Mock (27 Dec 2025)
+## Day 2 — Routing & Dashboard Mock (27 Dec 2025)
 - Installed and configured React Router with browser history
 - Added navigation + integrated layout for persistent header
 - Created a new Dashboard page (`Dashboard.tsx`)
@@ -31,7 +61,7 @@ React + TypeScript + Vite
 
 ---
 
-### Day 3 — Styling & Strava Integration Prep (29 Dec 2025)
+## Day 3 — Styling & Strava Integration Prep (29 Dec 2025)
 
 What I did:
 - Moved UI styling out of inline objects into index.css
@@ -48,7 +78,7 @@ Key learning:
 
 ---
 
-### Day 4 - Integrating with Strava (31 Dec 2025)
+## Day 4 - Integrating with Strava (31 Dec 2025)
 
 What I did:
 - Successfully fetched real Strava activities via a backend proxy
@@ -64,8 +94,8 @@ What I learned:
 
 ---
 
-### Day 5 - Strava OAuth Refactor (02 Jan 2026)
-What we did
+## Day 5 - Strava OAuth Refactor (02 Jan 2026)
+What I did
 - Fixed Strava OAuth failures caused by React 18 StrictMode double-running useEffect
 - Added a guard to ensure the authorization code is exchanged exactly once
 - Removed the temporary environment-token bypass
@@ -95,6 +125,63 @@ Key learnings
 - Token logic must be idempotent and centralised
 - Separating auth, API, and UI logic dramatically simplifies components
 
+---
+
+## Day 6 — Auth Testing & Hardening (04 Jan 2026)
+
+**Focus:** Adding automated tests to stabilise Strava OAuth and token handling
+
+### What I did
+Today focused on turning a fragile-but-working OAuth flow into something I can change with confidence.
+
+I added a full test setup using **Vitest** and implemented unit tests around the core authentication layers of the app:
+
+- **Token storage (`storage.ts`)**
+  - Verified tokens are correctly saved, loaded, validated, and cleared from `localStorage`
+  - Guarded against partial or corrupt token state
+
+- **Token lifecycle management (`tokenManager.ts`)**
+  - Tested access-token expiry logic, including an early refresh buffer (60s)
+  - Verified refresh behaviour when tokens are expired
+  - Ensured tokens are cleared if refresh fails
+  - Tested *single-flight refresh* so concurrent API calls only trigger **one** refresh request
+
+- **Auth API calls (`api.ts`)**
+  - Tested backend proxy endpoints for:
+    - OAuth code exchange
+    - Token refresh
+  - Verified request payloads and error handling
+
+All tests are green and run reliably in a browser-like test environment (`jsdom`).
+
+---
+
+### How the tests work
+
+The test setup mirrors runtime behaviour while keeping tests fast and deterministic:
+
+- **Vitest** is used as the test runner (Vite-native, TypeScript-friendly)
+- **jsdom** provides browser APIs such as `localStorage`
+- **fetch** is stubbed in tests to simulate backend responses (success and failure cases)
+- External boundaries (`fetch`, storage, time) are mocked, while internal logic is tested end-to-end
+
+Key principles:
+- Test **behaviour**, not implementation details
+- Mock only at module boundaries (storage and API calls)
+- Make auth logic deterministic and safe under concurrency
+
+This allows safe refactoring of OAuth and token refresh logic without fear of:
+- stale tokens being reused
+- silent refresh failures
+- duplicate concurrent refresh calls
+
+---
+
+### Outcome
+- Authentication is now covered by fast, deterministic unit tests
+- OAuth and token refresh logic is stable and future-proof
+- The app is well positioned for adding further Strava API integrations
+
 Current state
 ✅ OAuth working end-to-end
 ✅ Tokens stored and refreshed correctly
@@ -106,7 +193,6 @@ Current state
 - UI/visual restyling and polish
 - Possibly add logout / disconnect
 - Introduce charts/graphs for activity summaries
-- Unit tests
 
 
 ┌────────────────────────────────────────────────────┐
@@ -179,26 +265,16 @@ Current state
 
 🔐 OAuth Flow
 
-User navigates to Dashboard (/dashboard)
+OAuth Flow Summary
 
-If the user is not authenticated, Dashboard shows Connect with Strava
+1. User navigates to /dashboard
+2. If not authenticated, a Connect with Strava button is shown
+3. User is redirected to Strava authorisation
+4. Strava redirects back to /auth/callback?code=...
+5. The code is exchanged via the backend
+6. Tokens are stored (access_token, refresh_token, expires_at)
+7. User is redirected back to /dashboard
+8. All API calls use a central token manager which refreshes tokens automatically
 
-Clicking Connect redirects the user to Strava’s authorization page
-
-Strava redirects back to:
-
-/auth/callback?code=...
-
-AuthCallback.tsx exchanges the single-use code via the backend, stores:
-
-access_token
-
-refresh_token
-
-expires_at
-
-User is redirected back to /dashboard
-
-All API calls use a central token manager which refreshes tokens automatically when expired
-
-React 18 StrictMode note: In dev mode, effects can run twice. The callback includes a guard so the code is exchanged only once (Strava codes are single-use).
+Note on React 18 StrictMode
+In development, effects may run twice. The auth callback includes a guard to ensure the Strava authorisation code (single-use) is exchanged exactly once.
